@@ -4,7 +4,6 @@ from config import config, client
 
 async def send_event_message(message):
     channel = client.get_channel(config.channel_id)
-    print(f"Updated channel: {channel}")
     print(f"Sending message: {message}")
     await channel.send(message)
 
