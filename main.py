@@ -1,3 +1,5 @@
+from pyexpat.errors import messages
+
 import discord
 from config import config, client
 
@@ -22,13 +24,16 @@ async def on_audit_log_entry_create(entry):
     event = entry.target
 
     if entry.action == discord.AuditLogAction.scheduled_event_create:
-        await channel.send(f"**New event created!**\n{event.url}")
+        message = f"**New event created!**\n{event.url}"
     elif entry.action == discord.AuditLogAction.scheduled_event_update:
-        await channel.send(f"**An event was updated!**\n{event.url}")
+        message = f"**An event was updated!**\n{event.url}"
     elif entry.action == discord.AuditLogAction.scheduled_event_delete:
-        await channel.send(f"Heads up! `{entry.changes.before.name}` has been cancelled!")
+        message = f"Heads up! `{entry.changes.before.name}` has been cancelled!"
     else:
         print("Something else happened that we don't care about.")
+        return None
+
+    await channel.send(message)
 
 
 client.run(config.token)
