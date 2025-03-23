@@ -14,7 +14,7 @@ docker compose up
 ```
 
 ## Deploy to Fly.io
-- Run `fly deploy --ha=false` after making the code changes.
+- Run `fly deploy` after making the code changes.
 - If two machines are deployed can also run `fly scale count 1` to scale down to one machine.
 
 ## References
