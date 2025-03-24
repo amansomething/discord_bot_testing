@@ -1,4 +1,5 @@
 import discord
+
 from config import config, client
 
 
@@ -11,25 +12,32 @@ async def on_ready() -> None:
 
 
 @client.event
-async def on_audit_log_entry_create(entry):
+async def on_audit_log_entry_create(entry) -> None:
     """
     Check if a new event was added, updated, or deleted.
     Send a message to the channel if any of these actions occur.
 
-    :param entry: discord.AuditLogEntry - The entry that was created
+    :param entry: The entry that was added to the audit log.
     """
     channel = config.channel
-    event = entry.target
+    action = entry.action
 
-    if entry.action == discord.AuditLogAction.scheduled_event_create:
-        message = f"**New event created!**\n{event.url}"
-    elif entry.action == discord.AuditLogAction.scheduled_event_update:
-        message = f"**An event was updated!**\n{event.url}"
-    elif entry.action == discord.AuditLogAction.scheduled_event_delete:
-        message = f"Heads up! `{entry.changes.before.name}` has been cancelled!"
-    else:
-        print("Something else happened that we don't care about.")
+    relevant_actions = {
+        "new": discord.AuditLogAction.scheduled_event_create,
+        "updated": discord.AuditLogAction.scheduled_event_update,
+        "cancelled": discord.AuditLogAction.scheduled_event_delete,
+    }
+
+    if action not in relevant_actions.values():
+        # We don't care about this action, so ignore it.
         return None
+
+    if action == relevant_actions["cancelled"]:
+        message = f"**Heads up!** `{entry.changes.before.name}` **has been cancelled! ⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )**"
+    elif action == relevant_actions["new"]:
+        message = f"**Is that a bird? A plane? No!** It's a new team [event]({entry.target.url})!"
+    else:
+        message = f"**Hear ye, hear ye! An [event]({entry.target.url}) was updated!**"
 
     await channel.send(message)
 
