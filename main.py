@@ -12,6 +12,35 @@ CONFIG = Config()
 client = discord.Client(intents=intents)
 
 
+async def send_event_message(
+        entry: discord.AuditLogEntry,
+        title: str,
+        description: str,
+        send_event_link: bool,
+        create_discussion_thread: bool
+) -> None:
+    """
+    Helper function to send a message about scheduled events to the configured channel.
+
+    :param entry: The audit log entry for the event. This contains information about the event.
+    :param title: The title of the embed message.
+    :param description: The description of the embed message.
+    :param send_event_link: Whether to include a link to the event.
+    :param create_discussion_thread: Whether to create a discussion thread for the event.
+    """
+    embed = discord.Embed(title=title, description=description)
+    message = await CONFIG.channel.send(embed=embed)  # Send embedded the message for better formatting
+
+    if send_event_link:  # Also send a link to the event to generate a preview
+        message = await CONFIG.channel.send(f"[{entry.target.name} Details]({entry.target.url})")
+
+    if create_discussion_thread:
+        await message.create_thread(
+            name=entry.target.name,
+            auto_archive_duration=10080  # 7 days
+        )
+
+
 @client.event
 async def on_ready() -> None:
     """After the bot is logged in, update the config to set the channel to send messages to."""
@@ -21,50 +50,48 @@ async def on_ready() -> None:
 
 
 @client.event
-async def on_audit_log_entry_create(entry) -> None:
+async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
     """
     Check if a new event was added, updated, or deleted.
     Send a message to the channel if any of these actions occur.
 
+    https://discordpy.readthedocs.io/en/latest/api.html#discord.on_audit_log_entry_create
+
     :param entry: The entry that was added to the audit log.
     """
     action = entry.action
-    send_event_link = False
-    create_discussion_thread = False
 
     relevant_actions = {
-        "new": discord.AuditLogAction.scheduled_event_create,
-        "updated": discord.AuditLogAction.scheduled_event_update,
-        "cancelled": discord.AuditLogAction.scheduled_event_delete,
+        discord.AuditLogAction.scheduled_event_create: {
+            "title": "New Event Notification",
+            "description": "Is it a bird? A plane? No! It's a new team event! See details below!",
+            "send_event_link": True,
+            "create_discussion_thread": True
+        },
+        discord.AuditLogAction.scheduled_event_update: {
+            "title": "Event Update Notification",
+            "description": f"Hear ye, hear ye! An event was updated! See details below!",
+            "send_event_link": True,
+            "create_discussion_thread": False
+        },
+        discord.AuditLogAction.scheduled_event_delete: {
+            "title": "Event Cancellation Notification",
+            "description": f"Event Name: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )",
+            "send_event_link": False,
+            "create_discussion_thread": False
+        },
     }
 
-    if action not in relevant_actions.values():
-        # We don't care about this action, so ignore it.
-        return None
+    if action not in relevant_actions:
+        return  # Ignore actions that are not relevant
 
-    if action == relevant_actions["cancelled"]:
-        title="Event Cancellation Notification"
-        description = f"Event Name: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )"
-    elif action == relevant_actions["new"]:
-        send_event_link = True
-        create_discussion_thread = True
-        title = "New Event Notification"
-        description = "Is it a bird? A plane? No! It's a new team event! See details below!"
-    else:
-        send_event_link = True
-        title = "Event Update Notification"
-        description = f"Hear ye, hear ye! An event was updated! See details below!"
-
-    embed = discord.Embed(title=title, description=description)
-    await CONFIG.channel.send(embed=embed)  # Embed the message for better formatting
-    if send_event_link:
-        event_message = await CONFIG.channel.send(f"[{entry.target.name} Details]({entry.target.url})")
-
-        if create_discussion_thread:
-            await event_message.create_thread(
-                name=entry.target.name,
-                auto_archive_duration=10080  # 7 days
-            )
+    await send_event_message(
+        entry,
+        title=relevant_actions[action]["title"],
+        description=relevant_actions[action]["description"],
+        send_event_link=relevant_actions[action]["send_event_link"],
+        create_discussion_thread=relevant_actions[action]["create_discussion_thread"]
+    )
 
 
 client.run(CONFIG.token)

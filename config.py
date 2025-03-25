@@ -17,4 +17,3 @@ class Config:
         self.token: str = env.str('DISCORD_TOKEN')  # Discord bot token
         self.channel_id: int = env.int('CHANNEL_ID')  # Channel ID to send messages to
         self.channel: TextChannel | None = None
-
