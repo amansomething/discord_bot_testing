@@ -1,4 +1,14 @@
-## Run Locally
+# Discord Bot Testing with Fly.io
+
+A simple Discord bot that notifies a channel when an event is added, updated, or deleted from a server.
+
+## Local Testing
+
+### Pre-requisites
+- Discord Bot Token (See: https://discord.com/developers/docs/quick-start/getting-started)
+- Discord Channel ID (Last part of the channel URL, e.g., `https://discord.com/channels/123/5678` -> `5678`)
+
+### Run Locally
 
 Create a `.env` file with the following vars:
 
@@ -13,10 +23,15 @@ Run the bot with the following command:
 docker compose up
 ```
 
-## Deploy to Fly.io
+## Update Cloud Deployment
+### Directly on Fly.io
 - Run `fly deploy` after making the code changes.
-- If two machines are deployed can also run `fly scale count 1` to scale down to one machine.
+- If two machines end up being deployed, scale down using `fly scale count 1`.
+
+### Using GitHub Actions
+- Github Actions are set up to automatically deploy the bot to Fly.io on every push to the `main` branch.
 
 ## References
 [Discord.py API Reference](https://discordpy.readthedocs.io/en/stable/api.html?highlight=event#)
 [Discord Developer Portal](https://discord.com/developers/docs/quick-start/getting-started)
+[Fly.io Github Actions Documentation](https://fly.io/docs/launch/continuous-deployment-with-github-actions/)
