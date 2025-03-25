@@ -57,6 +57,17 @@ async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
 
     https://discordpy.readthedocs.io/en/latest/api.html#discord.on_audit_log_entry_create
 
+    The relevant actions are mapped to their corresponding messages and behaviors in this format:
+    {
+        <action_type>: {  # The action type from the audit log entry. Ex discord.AuditLogAction.scheduled_event_create
+            "title": "<title>",  # The title of the message to be sent.
+            "description": "<description>",  # The description of the message to be sent.
+            "send_event_link": <True|False>,  # Whether to include a link to the event. Used to generate a preview.
+            "create_discussion_thread": <True|False>  # Whether to create a discussion thread from the sent message.
+        },
+        ...
+    }
+
     :param entry: The entry that was added to the audit log.
     """
     action = entry.action
@@ -85,12 +96,13 @@ async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
     if action not in relevant_actions:
         return  # Ignore actions that are not relevant
 
+    relevant_action = relevant_actions[action]
     await send_event_message(
         entry,
-        title=relevant_actions[action]["title"],
-        description=relevant_actions[action]["description"],
-        send_event_link=relevant_actions[action]["send_event_link"],
-        create_discussion_thread=relevant_actions[action]["create_discussion_thread"]
+        title=relevant_action["title"],
+        description=relevant_action["description"],
+        send_event_link=relevant_action["send_event_link"],
+        create_discussion_thread=relevant_action["create_discussion_thread"]
     )
 
 
