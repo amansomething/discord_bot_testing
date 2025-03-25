@@ -58,7 +58,6 @@ async def on_audit_log_entry_create(entry) -> None:
     embed = discord.Embed(title=title, description=description)
     await CONFIG.channel.send(embed=embed)  # Embed the message for better formatting
     if send_event_link:
-        # This message generates a preview. Using || will hide the link in the message.
         event_message = await CONFIG.channel.send(f"[{entry.target.name} Details]({entry.target.url})")
 
         if create_discussion_thread:
