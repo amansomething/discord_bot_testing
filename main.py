@@ -28,13 +28,16 @@ async def send_event_message(
     :param send_event_link: Whether to include a link to the event.
     :param create_discussion_thread: Whether to create a discussion thread for the event.
     """
+    print(f"Attempting to send message: {title} - {description}")
     embed = discord.Embed(title=title, description=description)
     message = await CONFIG.channel.send(embed=embed)  # Send embedded the message for better formatting
 
     if send_event_link:  # Also send a link to the event to generate a preview
+        print(f"Sending event link: {entry.target.url}")
         message = await CONFIG.channel.send(f"[{entry.target.name} Details]({entry.target.url})")
 
     if create_discussion_thread:
+        print(f"Creating discussion thread for message: {message.id}")
         await message.create_thread(
             name=entry.target.name,
             auto_archive_duration=10080  # 7 days
@@ -47,6 +50,7 @@ async def on_ready() -> None:
     print(f'Logged in as: {client.user}')
     CONFIG.channel = client.get_channel(CONFIG.channel_id)
     print(f'Messages will be sent to: {CONFIG.channel}')
+    print('Bot is ready!')
 
 
 @client.event
@@ -96,6 +100,7 @@ async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
     if action not in relevant_actions:
         return  # Ignore actions that are not relevant
 
+    print(f"Relevant action detected: {action}")
     relevant_action = relevant_actions[action]
     await send_event_message(
         entry,
