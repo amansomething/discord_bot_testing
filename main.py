@@ -29,6 +29,8 @@ async def on_audit_log_entry_create(entry) -> None:
     :param entry: The entry that was added to the audit log.
     """
     action = entry.action
+    send_event_link = False
+    create_discussion_thread = False
 
     relevant_actions = {
         "new": discord.AuditLogAction.scheduled_event_create,
@@ -41,13 +43,29 @@ async def on_audit_log_entry_create(entry) -> None:
         return None
 
     if action == relevant_actions["cancelled"]:
-        message = f"**Heads up!** An event has been cancelled.\nEvent: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )\n"
+        title="Event Cancellation Notification"
+        description = f"Event Name: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )"
     elif action == relevant_actions["new"]:
-        message = f"**Is that a bird? A plane? No!** It's a new team [event]({entry.target.url})!\n"
+        send_event_link = True
+        create_discussion_thread = True
+        title = "New Event Notification"
+        description = "Is it a bird? A plane? No! It's a new team event! See details below!"
     else:
-        message = f"**Hear ye, hear ye! An [event]({entry.target.url}) was updated!**\n"
+        send_event_link = True
+        title = "Event Update Notification"
+        description = f"Hear ye, hear ye! An event was updated! See details below!"
 
-    await CONFIG.channel.send(message)
+    embed = discord.Embed(title=title, description=description)
+    await CONFIG.channel.send(embed=embed)  # Embed the message for better formatting
+    if send_event_link:
+        # This message generates a preview. Using || will hide the link in the message.
+        event_message = await CONFIG.channel.send(f"[{entry.target.name} Details]({entry.target.url})")
+
+        if create_discussion_thread:
+            await event_message.create_thread(
+                name=entry.target.name,
+                auto_archive_duration=10080  # 7 days
+            )
 
 
 client.run(CONFIG.token)
