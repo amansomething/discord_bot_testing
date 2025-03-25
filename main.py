@@ -22,7 +22,7 @@ async def send_event_message(
     """
     Helper function to send a message about scheduled events to the configured channel.
 
-    :param entry: The audit log entry for the event. This contains information about the event.
+    :param entry: The audit log entry for the event. Used to get additional event details.
     :param title: The title of the embed message.
     :param description: The description of the embed message.
     :param send_event_link: Whether to include a link to the event.
@@ -52,8 +52,8 @@ async def on_ready() -> None:
 @client.event
 async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
     """
-    Check if a new event was added, updated, or deleted.
-    Send a message to the channel if any of these actions occur.
+    Check if a relevant event (scheduled event created, updated, or deleted) has occurred.
+    Send a message to the team if so.
 
     https://discordpy.readthedocs.io/en/latest/api.html#discord.on_audit_log_entry_create
 
@@ -63,19 +63,19 @@ async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
 
     relevant_actions = {
         discord.AuditLogAction.scheduled_event_create: {
-            "title": "New Event Notification",
+            "title": "New Event Created",
             "description": "Is it a bird? A plane? No! It's a new team event! See details below!",
             "send_event_link": True,
             "create_discussion_thread": True
         },
         discord.AuditLogAction.scheduled_event_update: {
-            "title": "Event Update Notification",
+            "title": "Event Updated",
             "description": f"Hear ye, hear ye! An event was updated! See details below!",
             "send_event_link": True,
             "create_discussion_thread": False
         },
         discord.AuditLogAction.scheduled_event_delete: {
-            "title": "Event Cancellation Notification",
+            "title": "Event Cancelled",
             "description": f"Event Name: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )",
             "send_event_link": False,
             "create_discussion_thread": False
