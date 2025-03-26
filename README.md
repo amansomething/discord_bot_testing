@@ -41,6 +41,7 @@ docker compose up
 - Run `fly deploy` after making the code changes.
 - If two machines end up being deployed, scale down using `fly scale count 1`.
 
+**Note**: Fly.io only uses the `Dockerfile` and ignores the `compose.yml` file.
 ### Using GitHub Actions
 
 - Github Actions are set up to automatically deploy the bot to Fly.io on every push to the `main` branch.

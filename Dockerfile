@@ -40,3 +40,5 @@ USER appuser
 
 # Copy the source code into the container.
 COPY . .
+
+CMD ["python", "main.py"]
