@@ -30,7 +30,7 @@ async def send_event_message(
     """
     print(f"Attempting to send message: {title} - {description}")
     embed = discord.Embed(title=title, description=description)
-    message = await CONFIG.channel.send(embed=embed)  # Send embedded the message for better formatting
+    message = await CONFIG.channel.send(embed=embed)  # Send embedded message for better formatting
 
     if send_event_link:  # Also send a link to the event to generate a preview
         print(f"Sending event link: {entry.target.url}")
