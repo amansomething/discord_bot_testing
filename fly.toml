@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for discord-bot-testing on 2025-03-23T12:15:56-04:00
+# fly.toml app configuration file generated for discord-bot-9000 on 2025-03-26T14:11:18-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'discord-bot-testing'
+app = 'discord-bot-9000'
 primary_region = 'iad'
 
 [build]
@@ -17,6 +17,4 @@ primary_region = 'iad'
   processes = ['app']
 
 [[vm]]
-  memory = '256mb'
-  cpu_kind = 'shared'
-  cpus = 1
+  size = 'shared-cpu-1x'
