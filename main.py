@@ -25,7 +25,7 @@ class EventMessage:
     async def send_event_message(
             self,
             entry: discord.AuditLogEntry,
-            channel: discord.TextChannel = CONFIG.channel
+            channel: discord.TextChannel = None
     ) -> None:
         """
         Send a message about a scheduled event to the given channel.
@@ -33,6 +33,8 @@ class EventMessage:
         :param entry: The audit log entry for the event. Used to get additional event details.
         :param channel: The channel to send the message to. Defaults to the configured channel.
         """
+        channel = channel or CONFIG.channel  # Use the provided channel or the default from config
+
         print(f"Attempting to send message: {self.title} - {self.description}")
         embed = discord.Embed(title=self.title, description=self.description)
         message = await channel.send(embed=embed)  # Send embedded message for better formatting
