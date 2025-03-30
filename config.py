@@ -15,7 +15,7 @@ class Config:
         channel_id: The ID of the channel to send messages to.
         event_check_interval: The interval in hours to check for scheduled events.
         event_completion_threshold: The threshold in hours for upcoming events to create a discussion thread about.
-        event_data_file: The path to the JSON file used to store event data for later reference.
+        events_data_file: The path to the JSON file used to store event data for later reference.
         guild: The Discord guild object, initialized after the bot is ready.
         channel: The Discord channel object, initialized after the bot is ready.
     """
