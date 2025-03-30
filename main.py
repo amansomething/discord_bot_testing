@@ -1,99 +1,81 @@
-from dataclasses import dataclass
+import json
 
 import discord
+from discord.ext import commands
 
-from config import Config
+from config import config
+from event_messages import base_messages
 
-# Set up the intents for the Discord client (required for certain events)
 intents = discord.Intents.default()
-intents.message_content = True
-intents.guild_scheduled_events = True  # Required for scheduled events
-
-# Initialize the configuration and Discord client
-CONFIG = Config()
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 
-@dataclass
-class EventMessage:
-    """Dataclass to help organize the parameters for sending messages about scheduled events."""
-    title: str  # The title of the message to be sent.
-    description: str  # The description of the message to be sent.
-    send_event_link: bool = True  # Whether to include a link to the event in the message, which generates a preview.
-    create_discussion_thread: bool = False  # Whether to create a discussion thread from the last sent message.
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user.name}")
 
-    async def send_event_message(
-            self,
-            entry: discord.AuditLogEntry,
-            channel: discord.TextChannel = None
-    ) -> None:
-        """
-        Send a message about a scheduled event to the given channel.
-
-        :param entry: The audit log entry for the event. Used to get additional event details.
-        :param channel: The channel to send the message to. Defaults to the configured channel.
-        """
-        channel = channel or CONFIG.channel  # Use the provided channel or the default from config
-
-        print(f"Attempting to send message: {self.title} - {self.description}")
-        embed = discord.Embed(title=self.title, description=self.description)
-        message = await channel.send(embed=embed)  # Send embedded message for better formatting
-
-        if self.send_event_link:  # Also send a link to the event to generate a preview
-            print(f"Sending event link: {entry.target.url}")
-            message = await channel.send(f"[{entry.target.name} Details]({entry.target.url})")
-
-        if self.create_discussion_thread:
-            print(f"Creating discussion thread for message: {message.id}")
-            await message.create_thread(
-                name=entry.target.name,
-                auto_archive_duration=10080  # 7 days
-            )
+    print("Checking messages channel...")
+    config.channel = bot.get_channel(config.channel_id)
+    print(f'Messages will be sent to: {config.channel}')
 
 
-@client.event
-async def on_ready() -> None:
-    """After the bot is logged in, update the config to set the channel to send messages to."""
-    print(f'Logged in as: {client.user}')
-    CONFIG.channel = client.get_channel(CONFIG.channel_id)
-    print(f'Messages will be sent to: {CONFIG.channel}')
-    print('Bot is ready!')
 
-
-@client.event
-async def on_audit_log_entry_create(entry: discord.AuditLogEntry) -> None:
+@bot.event
+async def on_audit_log_entry_create(
+        entry: discord.AuditLogEntry,
+        channel: discord.TextChannel = None,
+        messages: dict = base_messages
+):
     """
     Check if a relevant event (scheduled event created, updated, or deleted) has occurred.
-    Send a message to the team if so.
-
-    https://discordpy.readthedocs.io/en/latest/api.html#discord.on_audit_log_entry_create
+    Logs the event and can later be expanded to notify a team channel.
 
     :param entry: The entry that was added to the audit log.
+    :param channel: The Discord channel to send messages to. Defaults to the channel from the config.
+    :param messages: The dictionary of base messages for different event types. See `event_messages.py`.
     """
-    action = entry.action
+    channel = channel or config.channel  # Use the channel from the config if not provided
+    detected_action = entry.action
 
     relevant_actions = {
-        discord.AuditLogAction.scheduled_event_create: EventMessage(
-            title="New Event Created",
-            description="Is it a bird? A plane? No! It's a new team event! See details below!",
-            create_discussion_thread=True
-        ),
-        discord.AuditLogAction.scheduled_event_update: EventMessage(
-            title="Event Updated",
-            description=f"Hear ye, hear ye! An event was updated! See details below!",
-        ),
-        discord.AuditLogAction.scheduled_event_delete: EventMessage(
-            title="Event Cancelled",
-            description=f"Event Name: `{entry.changes.before.name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )",
-            send_event_link=False,
-        ),
+        discord.AuditLogAction.scheduled_event_create: "New",
+        discord.AuditLogAction.scheduled_event_update: "Updated",
+        discord.AuditLogAction.scheduled_event_delete: "Cancelled",
     }
 
-    if action not in relevant_actions:
+    if detected_action not in relevant_actions:
         return  # Ignore actions that are not relevant
 
+    action = relevant_actions[detected_action]
     print(f"Relevant action detected: {action}")
-    await relevant_actions[action].send_event_message(entry=entry)
+    message = messages[action]
 
+    url = entry.target.url if hasattr(entry.target, 'url') else None
 
-client.run(CONFIG.token)
+    if hasattr(entry.target, 'name'):
+        name = entry.target.name
+    else:
+        try:
+            name = entry.changes.before.name
+        except AttributeError:
+            name = "Unknown Event Name"  # Fallback if no name is available
+            print("Failed to retrieve event name from entry, using fallback.")
+
+    if action == "Cancelled":
+        message.description = f"Event Name: `{name}`\n⎧ᴿᴵᴾ⎫ ❀◟(ᴗ_ ᴗ )"
+
+    embed = discord.Embed(title=message.title, description=message.description)
+    sent_message = await channel.send(embed=embed)  # Send embedded message for better formatting
+
+    if message.send_event_link:  # Also send a link to the event to generate a preview
+        print(f"Sending event link: {url}")
+        sent_message = await channel.send(f"[{name} Details]({url})")
+
+    if message.create_discussion_thread:
+        print(f"Creating discussion thread for message: {sent_message.id}")
+        await sent_message.create_thread(
+            name=name,
+            auto_archive_duration=10080  # 7 days
+        )
+
+bot.run(config.token)
