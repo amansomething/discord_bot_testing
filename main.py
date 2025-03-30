@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands, tasks
 
 from config import config
-# from event_checker import check_events
 from event_messages import base_messages
 
 intents = discord.Intents.default()
@@ -15,19 +14,21 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print(f"Logged in as {bot.user.name}")
 
-    print("Checking guild...")
+    print("Setting guild in config...")
     guild = bot.guilds[0]  # Assuming the bot is in only one guild
     if not guild:
         raise ValueError("Bot is not in any guilds.")
     config.guild = guild
     print(f"Updated config with guild: {guild.name}")
 
-    print("Checking messages channel...")
-    config.channel = bot.get_channel(config.channel_id)
-    print(f'Messages will be sent to: {config.channel}')
+    print("Setting channels in config...")
+    config.events_channel = bot.get_channel(config.events_channel_id)
+    config.announcements_channel = bot.get_channel(config.announcements_channel_id)
+    print(f'Threads for events ending soon will be sent to: {config.events_channel}')
+    print(f'Event notifications will be sent to: {config.announcements_channel}')
 
     print("Starting scheduled events check...")
-    check_events.start()  # Start the scheduled event checker
+    check_events.start()
 
 
 @bot.event
@@ -37,14 +38,14 @@ async def on_audit_log_entry_create(
         messages: dict = base_messages
 ):
     """
-    Check if a relevant event (scheduled event created, updated, or deleted) has occurred.
-    Logs the event and can later be expanded to notify a team channel.
+    Check if a relevant action (scheduled event created, updated, or deleted) has occurred.
+    Send a message to the team if so.
 
     :param entry: The entry that was added to the audit log.
     :param channel: The Discord channel to send messages to. Defaults to the channel from the config.
     :param messages: The dictionary of base messages for different event types. See `event_messages.py`.
     """
-    channel = channel or config.channel  # Use the channel from the config if not provided
+    channel = channel or config.announcements_channel  # Use the channel from the config if not provided
     detected_action = entry.action
 
     relevant_actions = {
@@ -56,10 +57,10 @@ async def on_audit_log_entry_create(
     if detected_action not in relevant_actions:
         return  # Ignore actions that are not relevant
 
-    action = relevant_actions[detected_action]
-    print(f"Relevant action detected: {action}")
-    message = messages[action]
+    print(f"Relevant action detected: {detected_action}")
 
+    action = relevant_actions[detected_action]
+    message = messages[action]
     url = entry.target.url if hasattr(entry.target, 'url') else None
 
     if hasattr(entry.target, 'name'):
@@ -89,12 +90,10 @@ async def on_audit_log_entry_create(
         )
 
 
-@tasks.loop(minutes=30)  # TODO: Update after testing is complete
-async def check_events(
-        guild: discord.Guild = None
-):
+@tasks.loop(minutes=config.event_check_interval)
+async def check_events(guild: discord.Guild = None):
     """
-    Checks for scheduled events ending within the threshold and creates a thread if needed.
+    Checks for scheduled events ending within a threshold and creates a thread if so.
 
     :param guild: The Discord guild (server) to check for scheduled events.
     """
@@ -102,15 +101,17 @@ async def check_events(
 
     now = datetime.now(timezone.utc)
     print(f"Checking for scheduled events... {now.isoformat()}")
-    # Calculate the threshold time for checking events
+    # Calculate the threshold time for creating a thread
     threshold_time = now + timedelta(minutes=config.event_completion_threshold)
 
     for event in guild.scheduled_events:
         # Check if the event has an end time and if it falls within the threshold
         if event.end_time and now <= event.end_time <= threshold_time:
             print(f"Event '{event.name}' is ending soon. Creating a discussion thread...")
+        else:
+            print(f"Event '{event.name}' is not ending soon. End time: {event.end_time}")
 
-            channel = config.channel
+            channel = config.events_channel
             month_year = event.end_time.strftime("%m/%d")  # Ex. "12/31" for December 31st
             thread_name = f"{event.name} - ({month_year})"  # Ex. "Snek Den - (12/31)"
             thread = await channel.create_thread(
@@ -120,6 +121,7 @@ async def check_events(
             )
             await thread.send(f"`{event.name}` is ending soon! Discuss here!")
             print(f"Created discussion thread '{thread_name}' for event '{event.name}' with ID {event.id}.")
+    print(f"Finished checking for scheduled events. Will check again in: {config.event_check_interval} minutes\n")
 
 
 check_events.before_loop(bot.wait_until_ready)

@@ -47,10 +47,10 @@ docker compose up
 **Note**: Fly.io only uses the `Dockerfile` and ignores the `compose.yml` file.
 ### Using GitHub Actions
 
-- Github Actions are set up to automatically deploy the bot to Fly.io on every push to the `main` branch.
+- GitHub Actions are set up to automatically deploy the bot to Fly.io on every push to the `main` branch.
 
 ## References
 
 - [Discord.py API Reference](https://discordpy.readthedocs.io/en/stable/api.html?highlight=event#)
 - [Discord Developer Portal](https://discord.com/developers/docs/quick-start/getting-started)
-- [Fly.io Github Actions Documentation](https://fly.io/docs/launch/continuous-deployment-with-github-actions/)
+- [Fly.io GitHub Actions Documentation](https://fly.io/docs/launch/continuous-deployment-with-github-actions/)
