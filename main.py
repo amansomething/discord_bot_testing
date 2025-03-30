@@ -12,6 +12,13 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print(f"Logged in as {bot.user.name}")
 
+    print("Checking guild...")
+    guild = bot.guilds[0]  # Assuming the bot is in only one guild
+    if not guild:
+        raise ValueError("Bot is not in any guilds.")
+    config.guild = guild
+    print(f"Updated config with guild: {guild.name}")
+
     print("Checking messages channel...")
     config.channel = bot.get_channel(config.channel_id)
     print(f'Messages will be sent to: {config.channel}')
