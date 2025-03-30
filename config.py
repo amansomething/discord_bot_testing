@@ -23,7 +23,7 @@ class Config:
         self.events_channel_id: int = env.int('EVENTS_CHANNEL_ID')
         self.announcements_channel_id: int = env.int('ANNOUNCEMENTS_CHANNEL_ID')
 
-        self.event_check_interval: int = 60 # in minutes
+        self.event_check_interval: int = 30 # in minutes
         self.event_completion_threshold: int = 30  # in minutes
         self.auto_archive_duration: int = 10080  # 7 days
 
