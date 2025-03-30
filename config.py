@@ -20,7 +20,7 @@ class Config:
         self.token: str = env.str('DISCORD_TOKEN')
         self.channel_id: int = env.int('CHANNEL_ID')
         self.event_check_interval: int = 24 # in hours
-        self.event_completion_threshold: int = 3  # in hours
+        self.event_completion_threshold: int = 6  # in hours
         self.guild = None
         self.channel = None
 
