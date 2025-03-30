@@ -27,6 +27,7 @@ class Config:
         self.events_data_file: Path = Path("events_data.json")
         self.guild = None
         self.channel = None
+        self.initialize_data_file()
 
     def initialize_data_file(self):
         """
@@ -36,6 +37,6 @@ class Config:
         if not self.events_data_file.exists():
             print("Initializing events data file...")
             with open(self.events_data_file, 'w') as f:
-                f.write("{}")
+                f.write("[]")
 
 config = Config()
