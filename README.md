@@ -17,7 +17,9 @@ A simple Discord bot that notifies a channel when an event is added, updated, or
 ### Pre-requisites
 
 - Discord Bot Token (See: https://discord.com/developers/docs/quick-start/getting-started)
-- Discord Channel ID (Last part of the channel URL, e.g., `https://discord.com/channels/123/5678` -> `5678`)
+- Discord Channel IDs (Last part of the channel URL, e.g., `https://discord.com/channels/123/5678` -> `5678`)
+  - `ANNOUNCEMENTS_CHANNEL_ID` - Where to send notifications about new, updated, and cancelled events.
+  - `EVENTS_CHANNEL_ID` - Where to create discussion threads for events ending soon.
 
 ### Run Locally
 
@@ -25,7 +27,8 @@ Create a `.env` file with the following vars:
 
 ```
 DISCORD_TOKEN="asdf.ghjkl"
-CHANNEL_ID="1234"
+ANNOUNCEMENTS_CHANNEL_ID="1234"
+EVENTS_CHANNEL_ID="2345"
 ```
 
 Run the bot with the following command:
