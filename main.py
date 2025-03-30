@@ -85,11 +85,11 @@ async def on_audit_log_entry_create(
         print(f"Creating discussion thread for message: {sent_message.id}")
         await sent_message.create_thread(
             name=name,
-            auto_archive_duration=10080  # 7 days
+            auto_archive_duration=config.auto_archive_duration,
         )
 
 
-@tasks.loop(minutes=5)  # TODO: Update after testing is complete
+@tasks.loop(minutes=30)  # TODO: Update after testing is complete
 async def check_events(
         guild: discord.Guild = None
 ):
@@ -103,15 +103,24 @@ async def check_events(
     now = datetime.now(timezone.utc)
     print(f"Checking for scheduled events... {now.isoformat()}")
     # Calculate the threshold time for checking events
-    threshold_time = now + timedelta(hours=config.event_completion_threshold)
+    threshold_time = now + timedelta(minutes=config.event_completion_threshold)
 
     for event in guild.scheduled_events:
-        print(event)
         # Check if the event has an end time and if it falls within the threshold
         if event.end_time and now <= event.end_time <= threshold_time:
-            print(f"Event '{event.name}' is ending soon.")
-        else:
-            print(f"Event '{event.name}' is not ending soon. Current time: {now.isoformat()}")
+            print(f"Event '{event.name}' is ending soon. Creating a discussion thread...")
+
+            channel = config.channel
+            month_year = event.end_time.strftime("%m/%d")  # Ex. "12/31" for December 31st
+            thread_name = f"{event.name} - ({month_year})"  # Ex. "Snek Den - (12/31)"
+            thread = await channel.create_thread(
+                name=thread_name,
+                type=discord.ChannelType.public_thread,
+                auto_archive_duration=config.auto_archive_duration
+            )
+            await thread.send(f"`{event.name}` is ending soon! Discuss here!")
+            print(f"Created discussion thread '{thread_name}' for event '{event.name}' with ID {event.id}.")
+
 
 check_events.before_loop(bot.wait_until_ready)
 bot.run(config.token)
