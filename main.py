@@ -106,21 +106,24 @@ async def check_events(guild: discord.Guild = None):
 
     for event in guild.scheduled_events:
         # Check if the event has an end time and if it falls within the threshold
-        if event.end_time and now <= event.end_time <= threshold_time:
-            print(f"Event '{event.name}' is ending soon. Creating a discussion thread...")
-        else:
-            print(f"Event '{event.name}' is not ending soon. End time: {event.end_time}")
+        ending_soon = event.end_time and now <= event.end_time <= threshold_time
 
-            channel = config.events_channel
-            month_year = event.end_time.strftime("%m/%d")  # Ex. "12/31" for December 31st
-            thread_name = f"{event.name} - ({month_year})"  # Ex. "Snek Den - (12/31)"
-            thread = await channel.create_thread(
-                name=thread_name,
-                type=discord.ChannelType.public_thread,
-                auto_archive_duration=config.auto_archive_duration
-            )
-            await thread.send(f"`{event.name}` is ending soon! Discuss here!")
-            print(f"Created discussion thread '{thread_name}' for event '{event.name}' with ID {event.id}.")
+        if not ending_soon:
+            print(f"Event '{event.name}' is not ending soon. End time: {event.end_time}")
+            continue
+
+        print(f"Event '{event.name}' is ending soon. Creating a discussion thread...")
+        channel = config.events_channel
+        month_year = event.end_time.strftime("%m/%d")  # Ex. "12/31" for December 31st
+        thread_name = f"{event.name} - ({month_year})"  # Ex. "Snek Den - (12/31)"
+        thread = await channel.create_thread(
+            name=thread_name,
+            type=discord.ChannelType.public_thread,
+            auto_archive_duration=config.auto_archive_duration
+        )
+        await thread.send(f"`{event.name}` is ending soon! Discuss here!")
+        print(f"Created discussion thread '{thread_name}' for event '{event.name}' with ID {event.id}.")
+
     print(f"Finished checking for scheduled events. Will check again in: {config.event_check_interval} minutes\n")
 
 
