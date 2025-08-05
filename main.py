@@ -22,9 +22,6 @@ async def on_ready():
     config.events_channel = bot.get_channel(config.events_channel_id)
     print(f'Notifications will be sent to: {config.events_channel}')
 
-    print("Starting scheduled events check...")
-    check_events.start()
-
 
 @bot.event
 async def on_audit_log_entry_create(
