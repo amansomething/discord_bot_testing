@@ -3,13 +3,14 @@
 A simple Discord bot that notifies a channel when an event is added, updated, or deleted from a server.
 
 <!-- TOC -->
-* [Local Testing](#local-testing)
-  * [Pre-requisites](#pre-requisites)
-  * [Run Locally](#run-locally)
-* [Update Cloud Deployment](#update-cloud-deployment)
-  * [Directly on Fly.io](#directly-on-flyio)
-  * [Using GitHub Actions](#using-github-actions)
-* [References](#references)
+* [Discord Bot Testing with Fly.io](#discord-bot-testing-with-flyio)
+  * [Local Testing](#local-testing)
+    * [Pre-requisites](#pre-requisites)
+    * [Run Locally](#run-locally)
+  * [Update Cloud Deployment](#update-cloud-deployment)
+    * [Directly on Fly.io](#directly-on-flyio)
+    * [Using GitHub Actions](#using-github-actions)
+  * [References](#references)
 <!-- TOC -->
 
 ## Local Testing
