@@ -13,13 +13,13 @@ class EventMessage:
 base_messages = {
     "New": EventMessage(
         title="New Event Created",
-        description="Is it a bird? A plane? No! It's a new team event! See details below!",
+        description="See details below!",
         create_discussion_thread=True
     ),
-    "Updated": EventMessage(
-        title="Event Updated",
-        description=f"Hear ye, hear ye! An event was updated! See details below!",
-    ),
+    # "Updated": EventMessage(
+    #     title="Event Updated",
+    #     description=f"Hear ye, hear ye! An event was updated! See details below!",
+    # ),
     "Cancelled": EventMessage(
         title="Event Cancelled",
         send_event_link=False,

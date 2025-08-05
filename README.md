@@ -1,15 +1,16 @@
 # Discord Bot Testing with Fly.io
 
-A simple Discord bot that notifies a channel when an event is added, updated, or deleted from a server.
+A simple Discord bot that notifies a channel when an event is added or deleted from a server.
 
 <!-- TOC -->
-* [Local Testing](#local-testing)
-  * [Pre-requisites](#pre-requisites)
-  * [Run Locally](#run-locally)
-* [Update Cloud Deployment](#update-cloud-deployment)
-  * [Directly on Fly.io](#directly-on-flyio)
-  * [Using GitHub Actions](#using-github-actions)
-* [References](#references)
+* [Discord Bot Testing with Fly.io](#discord-bot-testing-with-flyio)
+  * [Local Testing](#local-testing)
+    * [Pre-requisites](#pre-requisites)
+    * [Run Locally](#run-locally)
+  * [Update Cloud Deployment](#update-cloud-deployment)
+    * [Directly on Fly.io](#directly-on-flyio)
+    * [Using GitHub Actions](#using-github-actions)
+  * [References](#references)
 <!-- TOC -->
 
 ## Local Testing
@@ -18,8 +19,7 @@ A simple Discord bot that notifies a channel when an event is added, updated, or
 
 - Discord Bot Token (See: https://discord.com/developers/docs/quick-start/getting-started)
 - Discord Channel IDs (Last part of the channel URL, e.g., `https://discord.com/channels/123/5678` -> `5678`)
-  - `ANNOUNCEMENTS_CHANNEL_ID` - Where to send notifications about new, updated, and cancelled events.
-  - `EVENTS_CHANNEL_ID` - Where to create discussion threads for events ending soon.
+  - `EVENTS_CHANNEL_ID` - Where to send notifications.
 
 ### Run Locally
 
@@ -27,7 +27,6 @@ Create a `.env` file with the following vars:
 
 ```
 DISCORD_TOKEN="asdf.ghjkl"
-ANNOUNCEMENTS_CHANNEL_ID="1234"
 EVENTS_CHANNEL_ID="2345"
 ```
 
